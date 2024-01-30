@@ -1,28 +1,22 @@
-import ballerina/io;
-import ballerina/lang.runtime;
+import ballerina/task;
+import ballerina/file;
 
-configurable string supergraphPath = "supergraph.graphql";
+configurable string supergraphDirPath = "supergraphs";
 configurable string gatewayServicePath = "generated_gateway";
-configurable string gatewayServiceGenerator = "graphql_federation_gateway.jar";
-configurable string schemaRegistry = "http://localhost:9090";
+configurable string gatewayServiceGeneratorPath = "graphql_federation_gateway.jar";
+configurable string schemaRegistry = "http://172.19.100.143:9090";
+configurable decimal pollingInterval = 5.0;
+configurable int port = 8000;
+
+final GatewayServiceController gatewayJob = new(gatewayServicePath, gatewayServiceGeneratorPath, port);
+
+service "supergraphObserver" on new file:Listener({ path: supergraphDirPath }) {
+    remote function onModify(file:FileEvent fileEvent) {
+        gatewayJob.execute(fileEvent.name);
+    }
+}
 
 public function main() returns error? {
-    FetchSupergraphJob updateSupergraphJob = check new();
-    GatewayJob gatewayJob = new();
-    while (true) {
-        boolean isSupergraphUpdated = updateSupergraphJob.execute(); 
-        if isSupergraphUpdated {
-            io:println("Supergraph schema updated");
-        }
-        if !isSupergraphUpdated && gatewayJob.isGatewayServiceRunning() {
-            runtime:sleep(5);
-            continue;
-        }
-        error? stopResponse = gatewayJob.stopGatewayService();
-        if stopResponse is error {
-            io:println(stopResponse.message());
-        }
-        check gatewayJob.execute();
-        runtime:sleep(5);
-    }
+    SupergraphPollJob updateSupergraphJob = check new(schemaRegistry, supergraphDirPath);
+    _ = check task:scheduleJobRecurByFrequency(updateSupergraphJob, pollingInterval);
 }

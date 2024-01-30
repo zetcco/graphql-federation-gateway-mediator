@@ -1,6 +1,6 @@
 [package]
 org = "xlibb"
-name = "fedration_gateway_mediator"
+name = "federation_gateway_mediator"
 version = "0.1.0"
 
 [build-options]
