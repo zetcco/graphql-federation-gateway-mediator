@@ -37,15 +37,27 @@ class GatewayServiceController {
         check self.validateGatewayServiceGenerator();
         check self.validateGatewayServiceDirectory();
         check self.validateSupergraphSchema(supergraphSchemaPath);
-        os:Process exec = check os:exec({
-            value: "bal",
-            arguments: [
-                "run", 
-                self.gatewayServiceGenerator,
-                string `-CsupergraphPath=${supergraphSchemaPath}`,
-                string `-CoutputPath=${self.gatewayServicePath}`,
-                string `-Cport=${self.port}`
-        ]});
+        string[] configs = [
+            string `-CsupergraphPath=${supergraphSchemaPath}`,
+            string `-CoutputPath=${self.gatewayServicePath}`,
+            string `-Cport=${self.port}`
+        ];
+        os:Command generateCommand = isWindows ? {
+                                        value: "cmd.exe",
+                                        arguments: [
+                                            "/c",
+                                            "bal",
+                                            "run", 
+                                            self.gatewayServiceGenerator,
+                                            ...configs
+                                    ]} : {
+                                        value: "bal",
+                                        arguments: [
+                                            "run", 
+                                            self.gatewayServiceGenerator,
+                                            ...configs
+                                    ]};
+        os:Process exec = check os:exec(generateCommand);
         int status = check exec.waitForExit();
         if status != 0 {
             byte[] outputBytes = check exec.output(io:stdout);
@@ -55,12 +67,20 @@ class GatewayServiceController {
     }
 
     function buildGatewayService() returns error? {
-        os:Process exec = check os:exec({
-            value: "bal",
-            arguments: [
-                "build", 
-                self.gatewayServicePath
-        ]});
+        os:Command buildCommand = isWindows ? {
+                                        value: "cmd.exe",
+                                        arguments: [
+                                            "/c",
+                                            "bal",
+                                            "build", 
+                                            self.gatewayServicePath
+                                    ]} : {
+                                        value: "bal",
+                                        arguments: [
+                                            "build", 
+                                            self.gatewayServicePath
+                                    ]};
+        os:Process exec = check os:exec(buildCommand);
         int status = check exec.waitForExit();
         if status != 0 {
             byte[] outputBytes = check exec.output(io:stdout);
@@ -71,7 +91,6 @@ class GatewayServiceController {
 
     function startGatewayService() returns error? {
         string gatewayExecutablePath = check file:joinPath(self.gatewayServicePath, "target", "bin", "fedration_gateway.jar");
-        io:println(gatewayExecutablePath);
         os:Process exec = check os:exec({
             value: "java",
             arguments: [

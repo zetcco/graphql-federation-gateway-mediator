@@ -1,5 +1,6 @@
 import ballerina/task;
 import ballerina/file;
+import ballerina/os;
 
 configurable string supergraphDirPath = "supergraphs";
 configurable string gatewayServicePath = "generated_gateway";
@@ -7,6 +8,8 @@ configurable string gatewayServiceGeneratorPath = "graphql_federation_gateway.ja
 configurable string schemaRegistry = "http://172.19.100.143:9090";
 configurable decimal pollingInterval = 5.0;
 configurable int port = 8000;
+
+final boolean isWindows = os:getEnv("OS") != "";
 
 final GatewayServiceController gatewayJob = new(gatewayServicePath, gatewayServiceGeneratorPath, port);
 
