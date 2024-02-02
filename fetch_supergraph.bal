@@ -21,6 +21,9 @@ class SupergraphPollJob {
     isolated function init(string schemaRegistry, string supergraphDirPath) returns error? {
         self.schemaRegistry = check new (schemaRegistry);
         self.supergraphDirPath = supergraphDirPath;
+        if !(check file:test(self.supergraphDirPath, file:EXISTS)) {
+            check file:createDir(self.supergraphDirPath);
+        }
     }
 
     public function execute() {

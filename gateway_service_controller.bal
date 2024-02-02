@@ -10,11 +10,14 @@ class GatewayServiceController {
     private final string gatewayServiceGenerator;
     private final int port;
 
-    public function init(string gatewayServicePath, string gatewayServiceGenerator, int port) {
-        self.gatewayServiceProcess = ();
-        self.gatewayServicePath = gatewayServicePath;
-        self.gatewayServiceGenerator = gatewayServiceGenerator;
+    public function init(string gatewayServicePath, string gatewayServiceGenerator, int port) returns error? {
         self.port = port;
+        self.gatewayServiceProcess = ();
+        self.gatewayServiceGenerator = gatewayServiceGenerator;
+        self.gatewayServicePath = gatewayServicePath;
+        if !(check file:test(self.gatewayServicePath, file:EXISTS)) {
+            check file:createDir(self.gatewayServicePath);
+        }
     }
 
     public function execute(string supergraphSchemaPath) {
@@ -22,6 +25,18 @@ class GatewayServiceController {
         if err is error {
             log:printError("Failed to start gateway", 'error = err);
         }
+    }
+
+    public function stopGatewayService() returns error? {
+        os:Process? gatewayProcess = self.gatewayServiceProcess;
+        if gatewayProcess is () {
+            return error("No gateway service found");
+        }
+        gatewayProcess.exit();
+        int exitStatus = check gatewayProcess.waitForExit();
+        log:printInfo("Stopped Gateway service", exitStatus = exitStatus);
+
+        check self.cleanupGatewayService();
     }
 
     function restartGateway(string supergraphSchemaPath) returns error? {
@@ -99,18 +114,6 @@ class GatewayServiceController {
         ]});
         self.gatewayServiceProcess = exec;
         log:printInfo("Started Gateway Service", port = self.port);
-    }
-
-    function stopGatewayService() returns error? {
-        os:Process? gatewayProcess = self.gatewayServiceProcess;
-        if gatewayProcess is () {
-            return error("No gateway service found");
-        }
-        gatewayProcess.exit();
-        int exitStatus = check gatewayProcess.waitForExit();
-        log:printInfo("Stopped Gateway service", exitStatus = exitStatus);
-
-        check self.cleanupGatewayService();
     }
 
     function cleanupGatewayService() returns error? {

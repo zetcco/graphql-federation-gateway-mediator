@@ -1,5 +1,4 @@
-import ballerina/task;
-import ballerina/file;
+import ballerina/lang.runtime;
 import ballerina/os;
 
 configurable string supergraphDirPath = "supergraphs";
@@ -11,15 +10,8 @@ configurable int port = 8000;
 
 final boolean isWindows = os:getEnv("OS") != "";
 
-final GatewayServiceController gatewayJob = new(gatewayServicePath, gatewayServiceGeneratorPath, port);
-
-service "supergraphObserver" on new file:Listener({ path: supergraphDirPath }) {
-    remote function onModify(file:FileEvent fileEvent) {
-        gatewayJob.execute(fileEvent.name);
-    }
-}
-
 public function main() returns error? {
-    SupergraphPollJob updateSupergraphJob = check new(schemaRegistry, supergraphDirPath);
-    _ = check task:scheduleJobRecurByFrequency(updateSupergraphJob, pollingInterval);
+    Mediator federationGatewayMediator = check new(gatewayServicePath, supergraphDirPath, gatewayServiceGeneratorPath, port, schemaRegistry, pollingInterval);
+    check federationGatewayMediator.'start();
+    runtime:onGracefulStop(federationGatewayMediator.stop);
 }

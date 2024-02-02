@@ -93,7 +93,7 @@ modules = [
 [[package]]
 org = "ballerina"
 name = "http"
-version = "2.10.5"
+version = "2.10.6"
 dependencies = [
 	{org = "ballerina", name = "auth"},
 	{org = "ballerina", name = "cache"},
@@ -204,6 +204,9 @@ name = "lang.runtime"
 version = "0.0.0"
 dependencies = [
 	{org = "ballerina", name = "jballerina.java"}
+]
+modules = [
+	{org = "ballerina", packageName = "lang.runtime", moduleName = "lang.runtime"}
 ]
 
 [[package]]
@@ -359,6 +362,7 @@ dependencies = [
 	{org = "ballerina", name = "file"},
 	{org = "ballerina", name = "graphql"},
 	{org = "ballerina", name = "io"},
+	{org = "ballerina", name = "lang.runtime"},
 	{org = "ballerina", name = "log"},
 	{org = "ballerina", name = "os"},
 	{org = "ballerina", name = "task"},
