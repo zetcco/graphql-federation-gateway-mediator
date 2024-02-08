@@ -1,6 +1,6 @@
 # GraphQL Federation Mediator
 
-The GraphQL Federation Mediator is an application designed to act as a mediator between the "GraphQL Federation Gateway" and the "GraphQL Federation Schema Registry". Its primary function is to facilitate the communication and interaction between these two components in a GraphQL federation system.
+The GraphQL Federation Mediator is an application designed to act as a mediator between the [GraphQL Federation Gateway](https://github.com/xlibb/graphql-federation-gateway) and the [GraphQL Federation Schema Registry](https://github.com/xlibb/graphql-schema-registry). Its primary function is to facilitate the communication and interaction between these two components in a GraphQL federation system.
 
 The "GraphQL Federation Gateway" is responsible for generating a Ballerina service based on a Supergraph Schema provided as input. On the other hand, the "GraphQL Federation Schema Registry" stores and manages these Supergraph Schemas.
 
